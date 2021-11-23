@@ -1,12 +1,12 @@
-
+#include "../../../../developer/kmcompx/include/kmcompx.h"
 #include "pch.h"
-
-#include <compfile.h>
+#include "../../../../developer/kmcompx/include/compfile.h"
+//#include <compfile.h>
 #include <compiler.h>
 #include <comperr.h>
 #include <kmcmpdll.h>
 
-BOOL WarnDeprecatedHeader() {   // I4866
+KMX_BOOL WarnDeprecatedHeader() {   // I4866
   if (FWarnDeprecatedCode) {
     AddWarning(CWARN_HeaderStatementIsDeprecated);
   }
@@ -14,7 +14,7 @@ BOOL WarnDeprecatedHeader() {   // I4866
 }
 
 /* Flag presence of deprecated features */
-BOOL CheckForDeprecatedFeatures(PFILE_KEYBOARD fk) {
+KMX_BOOL CheckForDeprecatedFeatures(PFILE_KEYBOARD fk) {
   /* 
     For Keyman 10, we deprecated:
       // < Keyman 7
@@ -27,7 +27,7 @@ BOOL CheckForDeprecatedFeatures(PFILE_KEYBOARD fk) {
       #define TSS_WINDOWSLANGUAGES 29 
   */
   int currentLineBackup = currentLine;
-  DWORD i;
+  KMX_DWORD i;
   PFILE_STORE sp;
 
   if (!FWarnDeprecatedCode) {
