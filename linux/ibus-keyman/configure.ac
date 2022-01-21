@@ -74,6 +74,16 @@ PKG_CHECK_MODULES(JSON_GLIB, [
     json-glib-1.0 >= 1.0
 ])
 
+# check xkbcommon
+PKG_CHECK_MODULES(XKBCOMMON, [
+    xkbcommon >= 0.8
+])
+
+# check wayland
+PKG_CHECK_MODULES(WAYLAND_CLIENT, [
+  wayland-client >= 1.16
+])
+
 # check Keyman keyboard processor
 
 PKG_CHECK_MODULES(KEYMAN_PROC, [

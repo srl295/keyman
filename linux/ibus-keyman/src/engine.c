@@ -21,6 +21,7 @@
  *
  */
 
+#include <assert.h>
 #include <ibus.h>
 #include <string.h>
 #include <stdio.h>
@@ -35,6 +36,8 @@
 
 #ifdef GDK_WINDOWING_WAYLAND
 #include <gdk/gdkwayland.h>
+#include <sys/mman.h>
+#include <xkbcommon/xkbcommon.h>
 #endif
 
 #include <keyman/keyboardprocessor.h>
@@ -77,7 +80,13 @@ struct _IBusKeymanEngine {
     Display         *xdisplay;
 #endif
 #ifdef GDK_WINDOWING_WAYLAND
-    GdkWaylandDisplay *wldisplay;
+    struct wl_display *wl_display;
+    struct wl_registry *wl_registry;
+    struct xkb_context *xkb_context;
+    struct xkb_keymap *xkb_keymap;
+    struct xkb_state *xkb_state;
+    struct wl_seat *wl_seat;
+    struct wl_keyboard *wl_keyboard;
 #endif
 };
 
@@ -253,6 +262,117 @@ static void reset_context(IBusEngine *engine)
     }
 }
 
+#ifdef GDK_WINDOWING_WAYLAND
+static void
+kmn_wl_keyboard_keymap(void *data, struct wl_keyboard *keyboard, uint32_t format, int32_t fd, uint32_t size) {
+  IBusKeymanEngine *keyman = (IBusKeymanEngine *)data;
+  assert(format == WL_KEYBOARD_KEYMAP_FORMAT_XKB_V1);
+
+  char *map_shm = mmap(NULL, size, PROT_READ, MAP_PRIVATE, fd, 0);
+  assert(map_shm != MAP_FAILED);
+
+  keyman->xkb_keymap =
+      xkb_keymap_new_from_string(keyman->xkb_context, map_shm, XKB_KEYMAP_FORMAT_TEXT_V1, XKB_KEYMAP_COMPILE_NO_FLAGS);
+
+  munmap(map_shm, size);
+  close(fd);
+
+  xkb_state_unref(keyman->xkb_state);
+  keyman->xkb_state = xkb_state_new(keyman->xkb_keymap);
+}
+
+static void
+kmn_wl_keyboard_enter(
+    void *data,
+    struct wl_keyboard *keyboard,
+    uint32_t serial,
+    struct wl_surface *surface,
+    struct wl_array *keys) {
+  g_message("**** kmn_wl_keyboard_enter");
+}
+
+static void
+kmn_wl_keyboard_leave(void *data, struct wl_keyboard *keyboard, uint32_t serial, struct wl_surface *surface) {
+  g_message("**** kmn_wl_keyboard_leave");
+}
+
+static void
+kmn_wl_keyboard_key(void *data, struct wl_keyboard *keyboard, uint32_t serial, uint32_t time, uint32_t key, uint32_t state) {
+  IBusKeymanEngine *keyman          = (IBusKeymanEngine *)data;
+  struct client_state *client_state = data;
+  char buf[128];
+  char buf2[128];
+  uint32_t keycode = key + 8;
+  xkb_keysym_t sym = xkb_state_key_get_one_sym(keyman->xkb_state, keycode);
+  xkb_keysym_get_name(sym, buf, sizeof(buf));
+  const char *action = (state == WL_KEYBOARD_KEY_STATE_PRESSED) ? "press" : "release";
+  xkb_state_key_get_utf8(keyman->xkb_state, keycode, buf2, sizeof(buf2));
+  g_message("**** kmn_wl_keyboard_key: key %s: sym: %-12s (%d), utf8: '%s'", action, buf, sym, buf2);
+}
+
+static void
+kmn_wl_keyboard_modifiers(
+    void *data,
+    struct wl_keyboard *keyboard,
+    uint32_t serial,
+    uint32_t mods_depressed,
+    uint32_t mods_latched,
+    uint32_t mods_locked,
+    uint32_t group) {
+  IBusKeymanEngine *keyman = (IBusKeymanEngine *)data;
+  xkb_state_update_mask(keyman->xkb_state, mods_depressed, mods_latched, mods_locked, 0, 0, group);
+  g_message("**** kmn_wl_keyboard_modifiers");
+}
+
+static const struct wl_keyboard_listener kmn_wl_keyboard_listener = {
+    .keymap      = kmn_wl_keyboard_keymap,
+    .enter       = kmn_wl_keyboard_enter,
+    .leave       = kmn_wl_keyboard_leave,
+    .key         = kmn_wl_keyboard_key,
+    .modifiers   = kmn_wl_keyboard_modifiers,
+    .repeat_info = NULL,
+};
+
+static void
+kmn_wl_seat_capabilities(void *data, struct wl_seat *wl_seat, uint32_t capabilities) {
+  IBusKeymanEngine *keyman = (IBusKeymanEngine *)data;
+
+  gboolean have_keyboard = capabilities & WL_SEAT_CAPABILITY_KEYBOARD;
+
+  if (have_keyboard && keyman->wl_keyboard == NULL) {
+    keyman->wl_keyboard = wl_seat_get_keyboard(keyman->wl_seat);
+    wl_keyboard_add_listener(keyman->wl_keyboard, &kmn_wl_keyboard_listener, keyman);
+  } else if (!have_keyboard && keyman->wl_keyboard != NULL) {
+    wl_keyboard_release(keyman->wl_keyboard);
+    keyman->wl_keyboard = NULL;
+  }
+}
+
+static const struct wl_seat_listener kmn_wl_seat_listener = {
+    .capabilities = kmn_wl_seat_capabilities,
+    .name         = NULL,
+};
+
+static void
+kmn_wl_registry_global(void *data, struct wl_registry *wl_registry, uint32_t name, const char *interface, uint32_t version) {
+  IBusKeymanEngine *keyman = (IBusKeymanEngine *)data;
+  if (strcmp(interface, wl_seat_interface.name) == 0) {
+    keyman->wl_seat = wl_registry_bind(wl_registry, name, &wl_seat_interface, 7);
+    wl_seat_add_listener(keyman->wl_seat, &kmn_wl_seat_listener, keyman);
+  }
+}
+
+static void
+kmn_wl_registry_global_remove(void *data, struct wl_registry *wl_registry, uint32_t name) {
+  /* This space deliberately left blank */
+}
+
+static const struct wl_registry_listener kmn_wl_registry_listener = {
+    .global        = kmn_wl_registry_global,
+    .global_remove = kmn_wl_registry_global_remove,
+};
+#endif
+
 static void
 ibus_keyman_engine_init(IBusKeymanEngine *keyman) {
   gdk_init(NULL, NULL);
@@ -269,7 +389,13 @@ ibus_keyman_engine_init(IBusKeymanEngine *keyman) {
   keyman->xdisplay = NULL;
 #endif
 #ifdef GDK_WINDOWING_WAYLAND
-  keyman->wldisplay = NULL;
+  keyman->wl_display  = NULL;
+  keyman->wl_registry = NULL;
+  keyman->xkb_context = NULL;
+  keyman->xkb_keymap  = NULL;
+  keyman->xkb_state   = NULL;
+  keyman->wl_seat     = NULL;
+  keyman->wl_keyboard = NULL;
 #endif
 
   GdkDisplay *gdkDisplay = gdk_display_get_default();
@@ -280,7 +406,9 @@ ibus_keyman_engine_init(IBusKeymanEngine *keyman) {
 #endif
 #ifdef GDK_WINDOWING_WAYLAND
   if (GDK_IS_WAYLAND_DISPLAY(gdkDisplay)) {
-    keyman->wldisplay = GDK_WAYLAND_DISPLAY(gdkDisplay);
+    keyman->wl_display  = gdk_wayland_display_get_wl_display(GDK_WAYLAND_DISPLAY(gdkDisplay));
+    keyman->wl_registry = wl_display_get_registry(keyman->wl_display);
+    wl_registry_add_listener(keyman->wl_registry, &kmn_wl_registry_listener, keyman);
   } else
 #endif
   {
@@ -683,14 +811,15 @@ process_capslock_action(
 #endif
 #ifdef GDK_WINDOWING_WAYLAND
   // TODO
-  if (keyman->wldisplay) {
+  if (keyman->wl_display) {
 
   }
 #endif
   return TRUE;
 }
 
-static gboolean process_end_action(IBusKeymanEngine *keyman) {
+static gboolean
+process_end_action(IBusKeymanEngine *keyman) {
   keyman->firstsurrogate = 0;
   if (keyman->char_buffer != NULL) {
     ibus_keyman_engine_commit_string(keyman, keyman->char_buffer);

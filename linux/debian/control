@@ -35,6 +35,8 @@ Build-Depends:
  libgtk-3-dev,
  libibus-1.0-dev (>= 1.2),
  libjson-glib-dev (>= 1.4.0),
+ libxkbcommon-dev,
+ libwayland-dev,
  pkg-config,
  xserver-xephyr,
  xvfb,

@@ -2,7 +2,7 @@
 #
 # ibus-keyman - The Keyman engine for IBus
 #
-# Copyright (c) 2018 SIL International
+# Copyright (c) 2018-2022 SIL International
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -27,6 +27,8 @@ AM_CFLAGS = \
 	@GTK_CFLAGS@ \
 	@JSON_GLIB_CFLAGS@ \
 	@X11_CFLAGS@ \
+  @XKBCOMMON_CFLAGS@ \
+  @WAYLAND_CLIENT_CFLAGS@ \
 	@KEYMAN_PROC_CFLAGS@ \
 	-DPKGDATADIR=\"$(pkgdatadir)\" \
 	$(NULL)
@@ -36,6 +38,8 @@ AM_LDFLAGS = \
 	@GTK_LIBS@ \
 	@X11_LIBS@ \
 	@JSON_GLIB_LIBS@ \
+  @XKBCOMMON_LIBS@ \
+  @WAYLAND_CLIENT_LIBS@ \
 	@KEYMAN_PROC_LIBS@ \
 	$(NULL)
 
@@ -83,6 +87,8 @@ ibus_engine_keyman_CFLAGS = \
 	@GTK_CFLAGS@ \
 	@X11_CFLAGS@ \
 	@JSON_GLIB_CFLAGS@ \
+  @XKBCOMMON_CFLAGS@ \
+  @WAYLAND_CLIENT_CFLAGS@ \
 	@KEYMAN_PROC_CFLAGS@ \
 	-DPKGDATADIR=\"$(pkgdatadir)\" \
 	$(NULL)
@@ -92,6 +98,8 @@ ibus_engine_keyman_LDFLAGS = \
 	@IBUS_LIBS@ \
 	@X11_LIBS@ \
 	@JSON_GLIB_LIBS@ \
+  @XKBCOMMON_LIBS@ \
+  @WAYLAND_CLIENT_LIBS@ \
 	@KEYMAN_PROC_LIBS@ \
 	$(NULL)
 
