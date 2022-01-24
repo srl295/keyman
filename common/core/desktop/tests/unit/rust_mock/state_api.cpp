@@ -12,6 +12,18 @@
 
 #include "state.hpp"
 
+#if defined(__GNUC__) || defined(__clang__)
+#define PRAGMA(X) _Pragma(#X)
+#define DISABLE_WARNING_PUSH PRAGMA(GCC diagnostic push)
+#define DISABLE_WARNING_POP PRAGMA(GCC diagnostic pop)
+#define DISABLE_WARNING(W) PRAGMA(GCC diagnostic ignored #W)
+#define DISABLE_WARNING_TYPE_LIMITS DISABLE_WARNING(-Wtype-limits)
+#else
+#define DISABLE_WARNING_PUSH
+#define DISABLE_WARNING_POP
+#define DISABLE_WARNING_TYPE_LIMITS
+#endif
+
 #define   try_status(expr) \
 {auto __s = (expr); if (__s != KM_KBP_STATUS_OK) std::exit(100*__LINE__+__s);}
 
@@ -159,10 +171,14 @@ int main(int, char * [])
 
   // Test the engine
   auto attrs = km_kbp_get_engine_attrs(test_state);
+
+  DISABLE_WARNING_PUSH
+  DISABLE_WARNING_TYPE_LIMITS
   // Check the lib supplies our required interface.
   if (attrs->current - attrs->age > KM_KBP_LIB_CURRENT
       || attrs->current < KM_KBP_LIB_CURRENT) return __LINE__;
   if (attrs->max_context < 16) return __LINE__;
+  DISABLE_WARNING_POP
 
   try_status(km_kbp_process_event(test_state, KM_KBP_VKEY_S,
                                   KM_KBP_MODIFIER_SHIFT, true));
