@@ -53,7 +53,7 @@ namespace com.keyman.dom.targets {
     }
 
     hasSelection(): boolean {
-      return true;
+      return this.root.selectionStart != this.root.selectionEnd; // true
     }
 
     invalidateSelection() {
@@ -142,11 +142,12 @@ namespace com.keyman.dom.targets {
       }
 
       let caret = this.getCaret();
-      let front = this.getTextBeforeCaret();
-      let back = this.getText()._kmwSubstring(this.processedSelectionStart);
+      let front = this.getText()._kmwSubstring(0, this.processedSelectionStart);//this.getTextBeforeCaret();
+      let back = this.getText()._kmwSubstring(this.processedSelectionEnd);
 
       this.adjustDeadkeys(s._kmwLength());
       this.root.value = front + s + back;
+      console.log("insertTextBeforeCaret now: " + this.root.value);
       this.setCaret(caret + s._kmwLength());
     }
 

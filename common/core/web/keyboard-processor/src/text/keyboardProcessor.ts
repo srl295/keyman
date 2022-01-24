@@ -163,7 +163,11 @@ namespace com.keyman.text {
             // Let the browser handle those.
             return null;
           } else {
-            this.keyboardInterface.output(0, outputTarget, char);
+            let dn = 0;
+            if (this.keyboardInterface.activeTargetOutput.hasSelection()) {
+              dn = outputTarget.getSelectionSize();
+            }
+            this.keyboardInterface.output(dn, outputTarget, char);
           }
         } else {
           // No match, no default RuleBehavior.

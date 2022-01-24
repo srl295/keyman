@@ -221,6 +221,7 @@
       var resetContext = (ta.selectionStart != start || ta.selectionEnd != end);
       ta.selectionStart = ta._KeymanWebSelectionStart = start;
       ta.selectionEnd = ta._KeymanWebSelectionEnd = end;
+      ta.setSelectionRange(start, end);
       kmw['setActiveElement'](ta);
       if(resetContext) {
         kmw.resetContext();

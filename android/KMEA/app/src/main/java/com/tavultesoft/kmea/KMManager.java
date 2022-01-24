@@ -1891,6 +1891,8 @@ public final class KMManager {
     boolean result = false;
     if (kbType == KeyboardType.KEYBOARD_TYPE_INAPP) {
       if (InAppKeyboard != null && InAppKeyboardLoaded && !InAppKeyboardShouldIgnoreSelectionChange) {
+        // Set KeymanWeb context null?
+
         InAppKeyboard.loadJavascript(KMString.format("updateKMSelectionRange(%d,%d)", selStart, selEnd));
         result = true;
       }

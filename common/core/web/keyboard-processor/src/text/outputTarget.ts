@@ -82,14 +82,22 @@ namespace com.keyman.text {
       this.deadkeys().add(dk);
     }
 
+    getSelectionSize(): number {
+      if (this.hasSelection()) {
+        return 5; //
+      }
+
+      return 0;
+    }
+
     /**
      * Should be called by each output target immediately before text mutation operations occur.
-     * 
+     *
      * Maintains solutions to old issues:  I3318,I3319
      * @param {number} delta  Use negative values if characters were deleted, positive if characters were added.
      */
     protected adjustDeadkeys(delta: number) {
-      this.deadkeys().adjustPositions(this.getDeadkeyCaret(), delta); 
+      this.deadkeys().adjustPositions(this.getDeadkeyCaret(), delta);
     }
 
     /**
@@ -103,7 +111,7 @@ namespace com.keyman.text {
     /**
      * Determines the basic operations needed to reconstruct the current OutputTarget's text from the prior state specified
      * by another OutputTarget based on their text and caret positions.
-     * 
+     *
      * This is designed for use as a "before and after" comparison to determine the effect of a single keyboard rule at a time.
      * As such, it assumes that the caret is immediately after any inserted text.
      * @param from An output target (preferably a Mock) representing the prior state of the input/output system.
@@ -232,7 +240,7 @@ namespace com.keyman.text {
     /**
      * Helper to `restoreTo` - allows directly setting the 'before' context to that of another
      * `OutputTarget`.
-     * @param s 
+     * @param s
      */
     protected setTextBeforeCaret(s: string): void {
       // This one's easy enough to provide a default implementation for.
@@ -243,7 +251,7 @@ namespace com.keyman.text {
     /**
      * Helper to `restoreTo` - allows directly setting the 'after' context to that of another
      * `OutputTarget`.
-     * @param s 
+     * @param s
      */
     protected abstract setTextAfterCaret(s: string): void;
 
@@ -257,7 +265,7 @@ namespace com.keyman.text {
      * Clears any cached selection-related state values.
      */
     abstract invalidateSelection(): void;
-    
+
     /**
      * Indicates whether or not the underlying element has its own selection (input, textarea)
      * or is part of (or possesses) the DOM's active selection.
@@ -268,7 +276,7 @@ namespace com.keyman.text {
      * Returns an index corresponding to the caret's position for use with deadkeys.
      */
     abstract getDeadkeyCaret(): number;
-    
+
     /**
      * Relative to the caret, gets the current context within the wrapper's element.
      */
@@ -288,7 +296,7 @@ namespace com.keyman.text {
     /**
      * Performs context deletions (from the left of the caret) as needed by the KeymanWeb engine and
      * corrects the location of any affected deadkeys.
-     * 
+     *
      * Does not delete deadkeys (b/c KMW 1 & 2 behavior maintenance).
      * @param dn The number of characters to delete.  If negative, context will be left unchanged.
      */
@@ -297,7 +305,7 @@ namespace com.keyman.text {
     /**
      * Inserts text immediately before the caret's current position, moving the caret after the
      * newly inserted text in the process along with any affected deadkeys.
-     * 
+     *
      * @param s Text to insert before the caret's current position.
      */
     abstract insertTextBeforeCaret(s: string): void;
@@ -322,7 +330,7 @@ namespace com.keyman.text {
      * ops to facilitate more-seamless web-dev and user interactions.
      */
     restoreProperties(){
-      // Most element interfaces won't need anything here. 
+      // Most element interfaces won't need anything here.
     }
 
     /**
@@ -372,7 +380,7 @@ namespace com.keyman.text {
 
       return clone;
     }
-    
+
     clearSelection(): void {
       return;
     }
