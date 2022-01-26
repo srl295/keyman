@@ -82,14 +82,6 @@ namespace com.keyman.text {
       this.deadkeys().add(dk);
     }
 
-    getSelectionSize(): number {
-      if (this.hasSelection()) {
-        return 5; //
-      }
-
-      return 0;
-    }
-
     /**
      * Should be called by each output target immediately before text mutation operations occur.
      *

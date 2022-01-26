@@ -142,7 +142,7 @@ namespace com.keyman.dom.targets {
       }
 
       let caret = this.getCaret();
-      let front = this.getText()._kmwSubstring(0, this.processedSelectionStart);//this.getTextBeforeCaret();
+      let front = this.getTextBeforeCaret();
       let back = this.getText()._kmwSubstring(this.processedSelectionEnd);
 
       this.adjustDeadkeys(s._kmwLength());
