@@ -24,8 +24,13 @@ namespace com.keyman.dom.targets {
       return;
     }
 
-    hasSelection(): boolean {
+    hasInternalSelectionState(): boolean {
       // Always has an internal caret position.
+      return true;
+    }
+
+    hasSelection(): boolean {
+      // TODO
       return true;
     }
 

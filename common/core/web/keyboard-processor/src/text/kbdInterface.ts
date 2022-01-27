@@ -284,11 +284,13 @@ namespace com.keyman.text {
      *             KC(10,10,Pelem) == "XXXXabcdef"  i.e. return as much as possible of the requested string, where X = \uFFFE
      */
     private KC_(n: number, ln: number, outputTarget: OutputTarget): string {
-      var tempContext = '';
+      let tempContext = (outputTarget.hasSelection()) ? '' : outputTarget.getTextBeforeCaret();
+      console.info('tempcontext: ' + tempContext);
 
-      tempContext = outputTarget.getTextBeforeCaret();
-
-      if(tempContext._kmwLength() < n) {
+      if (tempContext == '') {
+        // If there's a selection, use a null context
+        return tempContext;
+      } else if(tempContext._kmwLength() < n) {
         tempContext = Array(n-tempContext._kmwLength()+1).join("\uFFFE") + tempContext;
       }
 

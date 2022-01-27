@@ -111,7 +111,7 @@ if(typeof InterfaceTests == 'undefined') {
     //#endregion
 
     //#region Defines helpers related to ContentEditable element test setup.
-    
+
     // These functions simply make the basic (within a single text node) tests
     // compatible with the more advanced element types; more complex tests may
     // be in order.  They can probably be shared with design-mode IFrames.
@@ -208,7 +208,7 @@ if(typeof InterfaceTests == 'undefined') {
     //#endregion
 
     //#region Defines helpers related to design-mode IFrame test setup.
-    
+
     // These functions simply make the basic (within a single text node) tests
     // compatible with the more advanced element types; more complex tests may
     // be in order.  They can probably be shared with ContentEditables.
@@ -218,7 +218,7 @@ if(typeof InterfaceTests == 'undefined') {
       // DynamicElements.addDesignIFrame takes an async callback
       // triggered upon the IFrame's load.
       var obj = this;
-      
+
       var id1 = DynamicElements.addDesignIFrame(function() {
         var id2 = DynamicElements.addDesignIFrame(function() {
           elem1 = document.getElementById(id1);
@@ -621,7 +621,7 @@ if(typeof InterfaceTests == 'undefined') {
       assert.equal(pair.wrapper.getTextBeforeCaret(), Apple.mixed.substr(0, 4), "Failed mixed SMP string, forward-order selection");
       String.kmwEnableSupplementaryPlane(false);
       pair.wrapper.invalidateSelection();
-      
+
       String.kmwEnableSupplementaryPlane(true);
       testObj.resetWithText(pair, Apple.mixed);
       testObj.setSelectionRange(pair, 7, 4);
@@ -692,7 +692,7 @@ if(typeof InterfaceTests == 'undefined') {
       assert.equal(pair.wrapper.getTextAfterCaret(), Apple.mixed.substr(5), "Failed mixed SMP string, forward-order selection");
       String.kmwEnableSupplementaryPlane(false);
       pair.wrapper.invalidateSelection();
-      
+
       String.kmwEnableSupplementaryPlane(true);
       testObj.resetWithText(pair, Apple.mixed);
       testObj.setSelectionRange(pair, 5, 3);
@@ -892,16 +892,16 @@ if(typeof InterfaceTests == 'undefined') {
       testObj.resetWithText(pair, Apple.mixed);
 
       testObj.setSelectionRange(pair, 0, 7);
-      assert.isTrue(pair.wrapper.hasSelection(), "Failed to recognize ownership of full, forward-order selection.");
+      assert.isTrue(pair.wrapper.hasInternalSelectionState(), "Failed to recognize ownership of full, forward-order selection.");
 
       testObj.setSelectionRange(pair, 7, 0);
-      assert.isTrue(pair.wrapper.hasSelection(), "Failed to recognize ownership of full, backward-order selection.")
+      assert.isTrue(pair.wrapper.hasInternalSelectionState(), "Failed to recognize ownership of full, backward-order selection.")
 
       testObj.setSelectionRange(pair, 1, 3);
-      assert.isTrue(pair.wrapper.hasSelection(), "Failed to recognize ownership of partial, forward-order selection.");
+      assert.isTrue(pair.wrapper.hasInternalSelectionState(), "Failed to recognize ownership of partial, forward-order selection.");
 
       testObj.setSelectionRange(pair, 3, 1);
-      assert.isTrue(pair.wrapper.hasSelection(), "Failed to recognize ownership of partial, backward-order selection.")
+      assert.isTrue(pair.wrapper.hasInternalSelectionState(), "Failed to recognize ownership of partial, backward-order selection.")
     }
 
     InterfaceTests.Tests.getSelectionUnowned = function(testObj) {
@@ -973,7 +973,7 @@ describe('Element Input/Output Interfacing', function() {
 
   before(function() {
     fixture.setBase('fixtures');
-    
+
     // Make sure the basic SMP extension hooks exist to prevent errors later.
     String.kmwEnableSupplementaryPlane(false);
   });
@@ -988,7 +988,7 @@ describe('Element Input/Output Interfacing', function() {
 
   describe('Wrapper: HTMLInputElement', function() {
     /**
-     * The design of these tests is to ensure that all caret handling works correctly, 
+     * The design of these tests is to ensure that all caret handling works correctly,
      * independently of other methods.  Other tests will then rely upon these methods
      * to simplify their code.
      */
@@ -1082,7 +1082,7 @@ describe('Element Input/Output Interfacing', function() {
   // TODO:  (if possible) Implement support for scroll-restoration checks.
   describe('Wrapper: HTMLTextAreaElement', function() {
     /**
-     * The design of these tests is to ensure that all caret handling works correctly, 
+     * The design of these tests is to ensure that all caret handling works correctly,
      * independently of other methods.  Other tests will then rely upon these methods
      * to simplify their code.
      */
@@ -1183,7 +1183,7 @@ describe('Element Input/Output Interfacing', function() {
     })
 
     describe('Caret Handling', function() {
-      describe('hasSelection', function() {
+      describe('hasInternalSelectionState', function() {
         it('correctly recognizes Selection ownership', function () {
           InterfaceTests.Tests.getSelectionOwned(InterfaceTests.ContentEditable);
         });
@@ -1286,7 +1286,7 @@ describe('Element Input/Output Interfacing', function() {
      * selections we'd want to test with these methods.  :(
      */
     // describe.skip('Caret Handling', function() {
-    //   describe('hasSelection', function() {
+    //   describe('hasInternalSelectionState', function() {
     //     it('correctly recognizes Selection ownership', function () {
     //       InterfaceTests.Tests.getSelectionOwned(InterfaceTests.DesignIFrame);
     //     });
@@ -1371,10 +1371,10 @@ describe('Element Input/Output Interfacing', function() {
     // Always has an active caret pos, so there's never a rejection.
     // However, never has an actual SELECTION, since touch aliases don't support those yet.
     // describe('Caret Handling', function() {
-    //   describe('hasSelection', function() {
+    //   describe('hasInternalSelectionState', function() {
     //     it('correctly reports an active selection', function () {
     //       InterfaceTests.Tests.getSelectionOwned(InterfaceTests.TouchAlias);
-    //     });        
+    //     });
     //   });
     // });
 

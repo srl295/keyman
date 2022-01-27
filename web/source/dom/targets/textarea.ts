@@ -52,8 +52,12 @@ namespace com.keyman.dom.targets {
       this.setCaret(caret);
     }
 
+    hasInternalSelectionState(): boolean {
+      return true;
+    }
+
     hasSelection(): boolean {
-      return this.root.selectionStart != this.root.selectionEnd; // true
+      return this.processedSelectionStart != this.processedSelectionEnd;
     }
 
     invalidateSelection() {

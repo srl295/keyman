@@ -43,7 +43,12 @@ namespace com.keyman.dom.targets {
       this.setCaret(caret);
     }
 
+    hasInternalSelectionState(): boolean {
+      return true;
+    }
+
     hasSelection(): boolean {
+      // TODO
       return true;
     }
 

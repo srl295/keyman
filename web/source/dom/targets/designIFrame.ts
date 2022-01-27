@@ -61,7 +61,7 @@ namespace com.keyman.dom.targets {
       this.doc.defaultView.focus(); // I3363 (Build 301)
     }
 
-    hasSelection(): boolean {
+    hasInternalSelectionState(): boolean {
       let Lsel = this.doc.getSelection();
       let outerSel = document.getSelection();
 
@@ -75,8 +75,13 @@ namespace com.keyman.dom.targets {
       }
     }
 
+    hasSelection(): boolean {
+      // TODO
+      return true;
+    }
+
     clearSelection(): void {
-      if(this.hasSelection()) {
+      if(this.hasInternalSelectionState()) {
         let Lsel = this.doc.getSelection();
 
         if(!Lsel.isCollapsed) {
@@ -120,7 +125,7 @@ namespace com.keyman.dom.targets {
     }
 
     getTextBeforeCaret(): string {
-      if(!this.hasSelection()) {
+      if(!this.hasInternalSelectionState()) {
         return;
       }
 
@@ -134,7 +139,7 @@ namespace com.keyman.dom.targets {
     }
 
     getTextAfterCaret(): string {
-      if(!this.hasSelection()) {
+      if(!this.hasInternalSelectionState()) {
         return;
       }
 
@@ -152,7 +157,7 @@ namespace com.keyman.dom.targets {
     }
 
     deleteCharsBeforeCaret(dn: number) {
-      if(!this.hasSelection() || dn <= 0) {
+      if(!this.hasInternalSelectionState() || dn <= 0) {
         return;
       }
 
@@ -181,7 +186,7 @@ namespace com.keyman.dom.targets {
     }
 
     insertTextBeforeCaret(s: string) {
-      if(!this.hasSelection()) {
+      if(!this.hasInternalSelectionState()) {
         return;
       }
 
@@ -243,7 +248,7 @@ namespace com.keyman.dom.targets {
     }
 
     protected setTextAfterCaret(s: string) {
-      if(!this.hasSelection()) {
+      if(!this.hasInternalSelectionState()) {
         return;
       }
 

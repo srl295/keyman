@@ -109,8 +109,8 @@ namespace com.keyman.text {
      * @param from An output target (preferably a Mock) representing the prior state of the input/output system.
      */
     buildTransformFrom(original: OutputTarget): Transform {
-      let to = this.getText();
-      let from = original.getText();
+      let to = this.getText(); //this.getTextBeforeCaret() + this.getTextBeforeCaret();
+      let from = original.getText(); //original.getTextBeforeCaret() + original.getTextAfterCaret();
 
       let fromCaret = original.getDeadkeyCaret();
       let toCaret = this.getDeadkeyCaret();
@@ -262,6 +262,11 @@ namespace com.keyman.text {
      * Indicates whether or not the underlying element has its own selection (input, textarea)
      * or is part of (or possesses) the DOM's active selection.
      */
+    abstract hasInternalSelectionState(): boolean;
+
+    /**
+     * Indicates whether or not the underlying element has an active selection.
+     */
     abstract hasSelection(): boolean;
 
     /**
@@ -364,6 +369,7 @@ namespace com.keyman.text {
 
         // We choose to ignore (rather, pre-emptively remove) any actively-selected text,
         // as since it's always removed instantly during any text mutation operations.
+        // Should we use entire text (including selection?) - it doesn't work though
         clone = new Mock(preText + outputTarget.getTextAfterCaret(), caretIndex);
       }
 
@@ -381,8 +387,12 @@ namespace com.keyman.text {
       return;
     }
 
+    hasInternalSelectionState(): boolean {
+      return false;
+    }
+
     hasSelection(): boolean {
-      return true;
+      return false;
     }
 
     getDeadkeyCaret(): number {
