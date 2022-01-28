@@ -109,9 +109,13 @@ namespace com.keyman.text {
      * @param from An output target (preferably a Mock) representing the prior state of the input/output system.
      */
     buildTransformFrom(original: OutputTarget): Transform {
-      let to = this.getText(); //this.getTextBeforeCaret() + this.getTextBeforeCaret();
-      let from = original.getText(); //original.getTextBeforeCaret() + original.getTextAfterCaret();
-
+      let to = this.getText();
+      let from = original.getText();
+      /*
+      // TODO: It seems we shouldn't include selection, but this deletes text before keystroke
+      let to = (this.hasSelection) ? this.getTextBeforeCaret() + this.getTextAfterCaret() : this.getText();
+      let from = original.getTextBeforeCaret() + original.getTextAfterCaret();
+      */
       let fromCaret = original.getDeadkeyCaret();
       let toCaret = this.getDeadkeyCaret();
 
@@ -187,6 +191,7 @@ namespace com.keyman.text {
         deletedRight = 0;
       }
 
+      console.info('buildTransformFrom(%s, %d, %d)', delta, deletedLeft, deletedRight);
       return new TextTransform(delta, deletedLeft, deletedRight);
     }
 
