@@ -294,7 +294,7 @@ final class FVShared {
         }
     }
 
-    private String getResourceRoot() {
+    public String getResourceRoot() {
         return context.getDir("data", 0).toString() + File.separator;
     }
 

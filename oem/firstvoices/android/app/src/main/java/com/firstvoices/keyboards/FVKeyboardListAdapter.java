@@ -1,27 +1,33 @@
 package com.firstvoices.keyboards;
 
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.Typeface;
+import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
-import android.widget.CheckBox;
-import android.widget.CompoundButton;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+
+import com.tavultesoft.kmea.KMManager;
+import com.tavultesoft.kmea.data.KeyboardController;
 
 class FVKeyboardListAdapter extends ArrayAdapter<FVShared.FVKeyboard> {
 
     Typeface listFont;
 
     private static class ViewHolder {
+        ImageView check;
         TextView text1;
         ImageButton helpButton;
-        CheckBox checkBox;
+        ImageButton nextButton;
+        String keyboardID;
     }
 
     FVKeyboardListAdapter(Context context, FVShared.FVRegion regionData) {
@@ -38,11 +44,13 @@ class FVKeyboardListAdapter extends ArrayAdapter<FVShared.FVKeyboard> {
         if(convertView == null) {
             convertView = LayoutInflater.from(getContext()).inflate(R.layout.keyboard_row_layout, parent, false);
             holder = new ViewHolder();
+            holder.check = convertView.findViewById(R.id.image1);
             holder.text1 = convertView.findViewById(R.id.text1);
-            holder.checkBox = convertView.findViewById(R.id.checkBox1);
             holder.helpButton = convertView.findViewById(R.id.buttonHelp);
             holder.helpButton.setOnClickListener(new FVKeyboardListAdapter.FVOnClickHelpListener());
-            holder.checkBox.setOnCheckedChangeListener(new FVKeyboardListAdapter.FVOnCheckedChangeListener());
+            holder.nextButton = convertView.findViewById(R.id.imageNext);
+            holder.nextButton.setOnClickListener(new FVKeyboardListAdapter.FVOnClickNextListener());
+            holder.keyboardID = keyboard.id;
             convertView.setTag(holder);
 
             if (listFont != null) {
@@ -53,10 +61,12 @@ class FVKeyboardListAdapter extends ArrayAdapter<FVShared.FVKeyboard> {
         }
 
         if(keyboard != null) {
+            // Check if keyboard is installed
+            if (KeyboardController.getInstance().keyboardExists(FVShared.FVDefault_PackageID, keyboard.id, null)) {
+                holder.check.setVisibility(View.VISIBLE);
+            }
             holder.text1.setText(keyboard.name);
             holder.helpButton.setTag(keyboard.id);
-            holder.checkBox.setTag(keyboard.id);
-            holder.checkBox.setChecked(FVShared.getInstance().checkState(keyboard.id));
         }
 
         return convertView;
@@ -79,10 +89,17 @@ class FVKeyboardListAdapter extends ArrayAdapter<FVShared.FVKeyboard> {
         }
     }
 
-    private class FVOnCheckedChangeListener implements CheckBox.OnCheckedChangeListener {
+    private class FVOnClickNextListener implements View.OnClickListener {
         @Override
-        public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-            FVShared.getInstance().setCheckState((String)buttonView.getTag(), isChecked);
+        public void onClick(View v) {
+            ViewHolder holder = (ViewHolder)v.getTag();
+            Intent intent = new Intent(getContext(), FVKeyboardSettingsActivity.class);
+            Bundle args = new Bundle();
+            args.putString(KMManager.KMKey_KeyboardID, holder.keyboardID);
+            intent.putExtras(args);
+            getContext().startActivity(intent);
+            //FVShared.getInstance().setCheckState(id, true);
         }
     }
+
 }

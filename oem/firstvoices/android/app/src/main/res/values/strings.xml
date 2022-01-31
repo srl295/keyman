@@ -4,4 +4,5 @@
     <string name="setup">Setup</string>
     <string name="regions">Regions</string>
     <string name="keyboards">Keyboards</string>
+    <string name="enable_keyboard">Enable %1$s Keyboard</string>
 </resources>
