@@ -35,10 +35,13 @@ typedef struct {
 } TestData;
 
 static gboolean loaded        = FALSE;
+static gboolean use_wayland   = FALSE;
 static GdkWindow *window      = NULL;
 static GMainLoop *thread_loop = NULL;
 static GTypeModule *module    = NULL;
-static Display *display       = NULL;
+#ifdef GDK_WINDOWING_X11
+static Display *display = NULL;
+#endif
 
 static void
 module_register(GTypeModule *module) {
@@ -60,13 +63,16 @@ ibus_keyman_tests_fixture_set_up(IBusKeymanTestsFixture *fixture, gconstpointer 
     window = gtk_widget_get_window(widget);
   }
 
-  if (!display) {
 #ifdef GDK_WINDOWING_X11
-    if (GDK_IS_X11_DISPLAY(gdk_display_get_default())) {
-      display = GDK_DISPLAY_XDISPLAY(gdk_display_get_default());
-    }
-#endif
+  if (!use_wayland && !display && GDK_IS_X11_DISPLAY(gdk_display_get_default())) {
+    display = GDK_DISPLAY_XDISPLAY(gdk_display_get_default());
   }
+#endif
+#ifdef GDK_WINDOWING_WAYLAND
+  if (use_wayland) {
+    // TODO
+  }
+#endif
 
   if (!loaded) {
     ibus_init();
@@ -102,9 +108,14 @@ ibus_keyman_tests_fixture_tear_down(IBusKeymanTestsFixture *fixture, gconstpoint
 static void
 set_caps_lock_state(IBusKeymanTestsFixture *fixture, bool caps_lock_on) {
 #ifdef GDK_WINDOWING_X11
-  if (display) {
+  if (!use_wayland && display) {
     XkbLockModifiers(display, XkbUseCoreKbd, LockMask, caps_lock_on ? LockMask : 0);
     XSync(display, False);
+  }
+#endif
+#ifdef GDK_WINDOWING_WAYLAND
+  if (use_wayland) {
+    // TODO
   }
 #endif
 }
@@ -112,10 +123,15 @@ set_caps_lock_state(IBusKeymanTestsFixture *fixture, bool caps_lock_on) {
 static bool
 get_caps_lock_state(IBusKeymanTestsFixture *fixture) {
 #ifdef GDK_WINDOWING_X11
-  if (display) {
+  if (!use_wayland && display) {
     XKeyboardState state;
     XGetKeyboardControl(display, &state);
     return state.led_mask & 1;
+  }
+#endif
+#ifdef GDK_WINDOWING_WAYLAND
+  if (use_wayland) {
+    // TODO
   }
 #endif
 
@@ -384,20 +400,23 @@ test_skip(IBusKeymanTestsFixture *fixture, gconstpointer user_data) {
 
 void
 print_usage() {
-  printf("Usage: %s --directory <keyboarddir> [--surrounding-text] [--no-surrounding-text] test1 [test2 ...]\n\n", g_get_prgname());
+  printf("Usage: %s --directory <keyboarddir> [--surrounding-text] [--no-surrounding-text] [--wayland|--x11] test1 [test2 ...]\n\n", g_get_prgname());
   printf("Arguments:\n");
+  printf("\t--wayland\tRun tests on Wayland\n");
+  printf("\t--x11\tRun tests on X11\n");
   printf("\t--surrounding-text\tRun tests with surrounding text support\n");
   printf("\t--no-surrounding-text\tRun tests without surrounding text support\n");
   printf("\nIf neither --surrounding-text nor --no-surrounding-text are specified then the tests run with both settings.\n");
 }
 
 void
-add_test(const char* directory, const char* filename, gboolean use_surrounding_text, const char* skip_reason) {
+add_test(const char* directory, const char* filename, gboolean use_surrounding_text, const char* skip_reason, bool useWayland) {
   auto file         = g_file_new_for_commandline_arg(filename);
   auto testfilebase = g_file_get_basename(file);
   auto testname     = g_string_new(NULL);
   g_string_append_printf(
-      testname, "/integration-tests/%s/%s", use_surrounding_text ? "surrounding-text" : "no-surrounding-text", testfilebase);
+      testname, "/%s/integration-tests/%s/%s", useWayland ? "wayland" : "x11",
+      use_surrounding_text ? "surrounding-text" : "no-surrounding-text", testfilebase);
   auto testfile = g_file_new_build_filename(directory, testfilebase, NULL);
   auto testdata                  = new TestData();
   testdata->test_name            = strdup(filename);
@@ -425,6 +444,8 @@ main(int argc, char *argv[]) {
 
   int iArg;
   char *directory = NULL;
+  bool argWayland = false;
+  bool argX11 = false;
   bool seenDirectory = false;
   bool seenSurroundingTextOption = false;
   bool runSurroundingTextTests = true;
@@ -435,6 +456,10 @@ main(int argc, char *argv[]) {
       iArg++;
       directory = argv[iArg];
       seenDirectory = true;
+    } else if (strcmp(argv[iArg], "--wayland") == 0) {
+      argWayland = true;
+    } else if (strcmp(argv[iArg], "--x11") == 0) {
+      argX11 = true;
     } else if (strcmp(argv[iArg], "--surrounding-text") == 0) {
       if (!seenSurroundingTextOption) {
         runNoSurroundingTextTests = false;
@@ -455,6 +480,13 @@ main(int argc, char *argv[]) {
     }
   }
 
+  if (argWayland && argX11) {
+    printf("ERROR: --wayland and --x11 can't both be specified");
+    print_usage();
+    return 2;
+  }
+
+  use_wayland     = argWayland;
   int nTests      = argc - iArg;
   char **tests    = &argv[iArg];
 
@@ -473,10 +505,10 @@ main(int argc, char *argv[]) {
     }
 
     if (runSurroundingTextTests) {
-      add_test(directory, filename->str, TRUE, skipReason);
+      add_test(directory, filename->str, TRUE, skipReason, use_wayland);
     }
     if (runNoSurroundingTextTests) {
-      add_test(directory, filename->str, FALSE, skipReason);
+      add_test(directory, filename->str, FALSE, skipReason, use_wayland);
     }
 
     g_string_free(filename, TRUE);
@@ -487,9 +519,14 @@ main(int argc, char *argv[]) {
 
   // Cleanup
 #ifdef GDK_WINDOWING_X11
-  if (display) {
+  if (!use_wayland && display) {
     XCloseDisplay(display);
     display = NULL;
+  }
+#endif
+#ifdef GDK_WINDOWING_WAYLAND
+  if (use_wayland) {
+    // cleanup
   }
 #endif
 
