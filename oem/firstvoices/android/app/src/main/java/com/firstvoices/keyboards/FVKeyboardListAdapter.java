@@ -27,7 +27,6 @@ class FVKeyboardListAdapter extends ArrayAdapter<FVShared.FVKeyboard> {
         TextView text1;
         ImageButton helpButton;
         ImageButton nextButton;
-        String keyboardID;
     }
 
     FVKeyboardListAdapter(Context context, FVShared.FVRegion regionData) {
@@ -46,11 +45,11 @@ class FVKeyboardListAdapter extends ArrayAdapter<FVShared.FVKeyboard> {
             holder = new ViewHolder();
             holder.check = convertView.findViewById(R.id.image1);
             holder.text1 = convertView.findViewById(R.id.text1);
+            holder.text1.setOnClickListener(new FVKeyboardListAdapter.FVOnClickNextListener());
             holder.helpButton = convertView.findViewById(R.id.buttonHelp);
             holder.helpButton.setOnClickListener(new FVKeyboardListAdapter.FVOnClickHelpListener());
             holder.nextButton = convertView.findViewById(R.id.imageNext);
             holder.nextButton.setOnClickListener(new FVKeyboardListAdapter.FVOnClickNextListener());
-            holder.keyboardID = keyboard.id;
             convertView.setTag(holder);
 
             if (listFont != null) {
@@ -66,7 +65,9 @@ class FVKeyboardListAdapter extends ArrayAdapter<FVShared.FVKeyboard> {
                 holder.check.setVisibility(View.VISIBLE);
             }
             holder.text1.setText(keyboard.name);
+            holder.text1.setTag(keyboard);
             holder.helpButton.setTag(keyboard.id);
+            holder.nextButton.setTag(keyboard);
         }
 
         return convertView;
@@ -89,16 +90,20 @@ class FVKeyboardListAdapter extends ArrayAdapter<FVShared.FVKeyboard> {
         }
     }
 
-    private class FVOnClickNextListener implements View.OnClickListener {
+    private class FVOnClickNextListener implements ImageButton.OnClickListener {
         @Override
         public void onClick(View v) {
-            ViewHolder holder = (ViewHolder)v.getTag();
+            FVShared.FVKeyboard keyboard = (FVShared.FVKeyboard) v.getTag();
             Intent intent = new Intent(getContext(), FVKeyboardSettingsActivity.class);
             Bundle args = new Bundle();
-            args.putString(KMManager.KMKey_KeyboardID, holder.keyboardID);
+            args.putString(KMManager.KMKey_KeyboardID, keyboard.id);
+            args.putString(KMManager.KMKey_KeyboardName, keyboard.name);
+            args.putString(KMManager.KMKey_LanguageID, keyboard.lgId);
+            args.putString(KMManager.KMKey_LanguageName, keyboard.lgName);
+            args.putString(KMManager.KMKey_Version, keyboard.version);
             intent.putExtras(args);
             getContext().startActivity(intent);
-            //FVShared.getInstance().setCheckState(id, true);
+            notifyDataSetChanged();
         }
     }
 

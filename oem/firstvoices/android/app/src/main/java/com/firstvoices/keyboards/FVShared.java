@@ -6,11 +6,15 @@ import android.content.SharedPreferences;
 import android.content.res.AssetManager;
 import android.net.Uri;
 import android.util.Log;
+
+import com.tavultesoft.kmea.JSONParser;
 import com.tavultesoft.kmea.KMManager;
 import com.tavultesoft.kmea.data.Keyboard;
 import com.tavultesoft.kmea.packages.PackageProcessor;
 import com.tavultesoft.kmea.util.FileUtils;
 import com.tavultesoft.kmea.util.KMLog;
+
+import org.json.JSONObject;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -52,11 +56,14 @@ final class FVShared {
 
     /// Describes a keyboard used in FirstVoices Keyboards
     static class FVKeyboard {
-        final String id, name, legacyId;
-        FVKeyboard(String id, String name, String legacyId) {
+        final String id, name, legacyId, lgId, lgName, version;
+        FVKeyboard(String id, String name, String legacyId, String lgId, String lgName, String version) {
             this.id = id;
             this.name = name;
             this.legacyId = legacyId;
+            this.lgId = lgId;
+            this.lgName = lgName;
+            this.version = version;
         }
     }
 
@@ -123,6 +130,15 @@ final class FVShared {
     private FVRegionList loadRegionList() {
         FVRegionList list = new FVRegionList();
         try {
+            // At this point in initialization, kmp.json hasn't been extracted, so we'll
+            // parse a copy of kmp.json from assets to get associated language info
+            InputStream kmpStream = context.getAssets().open("kmp.json");
+            BufferedReader kmpReader = new BufferedReader(new InputStreamReader(kmpStream));
+            JSONParser jsonParser = new JSONParser();
+            JSONObject jsonObj = jsonParser.getJSONObjectFromReader(kmpReader);
+            File resourceRoot =  new File(getResourceRoot());
+            PackageProcessor kmpProcessor =  new PackageProcessor(resourceRoot);
+
             InputStream inputStream = context.getAssets().open("keyboards.csv");
             BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
 
@@ -147,7 +163,19 @@ final class FVShared {
                         list.add(region);
                     }
 
-                    FVKeyboard keyboard = new FVKeyboard(kbId, kbName, legacyId);
+                    // Get associated language. Should we have a fallback language?
+                    String lgId = "en";
+                    String lgName = "English";
+                    String version = "9.0";
+                    List<Keyboard> kbList = kmpProcessor.getKeyboardList(
+                        jsonObj, FVDefault_PackageID, kbId, true, false);
+                    if (kbList != null && kbList.size() > 0) {
+                        Keyboard kbd = kbList.get(0);
+                        lgId = kbd.getLanguageID();
+                        lgName = kbd.getLanguageName();
+                        version = kbd.getVersion();
+                    }
+                    FVKeyboard keyboard = new FVKeyboard(kbId, kbName, legacyId, lgId, lgName, version);
 
                     region.keyboards.add(keyboard);
                 }

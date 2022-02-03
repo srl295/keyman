@@ -4,40 +4,31 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.view.LayoutInflater;
 import android.view.View;
-import android.view.ViewGroup;
 import android.view.Window;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
-import androidx.annotation.NonNull;
-import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.SwitchCompat;
 import androidx.appcompat.widget.Toolbar;
 
-import com.tavultesoft.kmea.KeyboardPickerActivity;
 import com.tavultesoft.kmea.KMManager;
 import com.tavultesoft.kmea.ModelPickerActivity;
-import com.tavultesoft.kmea.data.Dataset;
-import com.tavultesoft.kmea.data.Keyboard;
 import com.tavultesoft.kmea.data.KeyboardController;
-import com.tavultesoft.kmea.data.adapters.NestedAdapter;
-import com.tavultesoft.kmea.packages.PackageProcessor;
 import com.tavultesoft.kmea.util.KMLog;
 
-import java.io.File;
 import java.util.HashMap;
 
 /**
- * Displays a FV Keyboard enable and some lexical model switches.
+ * Displays an FV Keyboard enable and some lexical model switches.
  */
 public final class FVKeyboardSettingsActivity extends AppCompatActivity {
   private Context context;
   private static Toolbar toolbar = null;
   private static TextView fvKeyboardTextView = null;
+  private static TextView fvVersionTextView = null;
   private static TextView lexicalModelTextView = null;
   private static TextView correctionsTextView = null;
   private static SwitchCompat fvKeyboardToggle = null;
@@ -48,6 +39,7 @@ public final class FVKeyboardSettingsActivity extends AppCompatActivity {
   private String kbId;
   private String kbName;
   private String customHelpLink;
+  private String version;
   private SharedPreferences prefs;
 
   private final static String TAG = "FVKbdSettingsAct";
@@ -100,13 +92,6 @@ public final class FVKeyboardSettingsActivity extends AppCompatActivity {
     context = this;
     setContentView(R.layout.fv_keyboard_settings_list_layout);
 
-    toolbar = (Toolbar) findViewById(R.id.list_toolbar);
-    setSupportActionBar(toolbar);
-    getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-    getSupportActionBar().setDisplayShowHomeEnabled(true);
-    getSupportActionBar().setDisplayShowTitleEnabled(false);
-    TextView textView = (TextView) findViewById(R.id.bar_title);
-
     Bundle bundle = getIntent().getExtras();
     if (bundle == null) {
       // Should never actually happen.
@@ -121,26 +106,32 @@ public final class FVKeyboardSettingsActivity extends AppCompatActivity {
     }
 
     kbId = bundle.getString(KMManager.KMKey_KeyboardID);
+    kbName = bundle.getString(KMManager.KMKey_KeyboardName);
+    lgCode = bundle.getString(KMManager.KMKey_LanguageID);
+    lgName = bundle.getString(KMManager.KMKey_LanguageName);
+    version = bundle.getString(KMManager.KMKey_Version);
 
-    File resourceRoot =  new File(context.getDir("data", 0).toString() + File.separator);
-    PackageProcessor kmpProcessor =  new PackageProcessor(resourceRoot);
+    toolbar = (Toolbar) findViewById(R.id.list_toolbar);
+    setSupportActionBar(toolbar);
+    getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+    getSupportActionBar().setDisplayShowHomeEnabled(true);
+    getSupportActionBar().setDisplayShowTitleEnabled(false);
+    TextView textView = (TextView) findViewById(R.id.bar_title);
 
-    Keyboard k = kmpProcessor.getKeyboard(FVShared.FVDefault_PackageID, kbId, null);
-    if (k != null) {
-        lgCode = k.getLanguageCode();
-        lgName = k.getLanguageName();
-        kbName = k.getKeyboardName();
-        customHelpLink = k.getHelpLink();
-    }
-    textView.setText(kbName);
-
+    textView.setText(String.format(getString(R.string.keyboard_settings), kbName));
     RelativeLayout layout = (RelativeLayout)findViewById(R.id.keyboard_toggle);
     fvKeyboardTextView = (TextView) layout.findViewById(R.id.text1);
-    fvKeyboardTextView.setText(String.format(getString(R.string.enable_keyboard), kbName));
+    fvKeyboardTextView.setText(getString(R.string.enable_keyboard));
+    fvVersionTextView = (TextView) layout.findViewById(R.id.text2);
+    fvVersionTextView.setText(String.format(getString(R.string.keyboard_version), version));
     fvKeyboardToggle = layout.findViewById(R.id.toggle);
     fvKeyboardToggle.setChecked(KeyboardController.getInstance().keyboardExists(FVShared.FVDefault_PackageID, kbId, null));
-    String prefsKey = "fvKeyboardToggle"; // TODO
-    fvKeyboardToggle.setOnClickListener(new PreferenceToggleListener(prefsKey, lgCode ));
+    fvKeyboardToggle.setOnClickListener(new View.OnClickListener() {
+        @Override
+        public void onClick(View v) {
+           FVShared.getInstance().setCheckState(kbId, fvKeyboardToggle.isChecked());
+        }
+    });
 
     // The following two layouts/toggles will need to link with these objects.
     Context appContext = this.getApplicationContext();
@@ -154,7 +145,7 @@ public final class FVKeyboardSettingsActivity extends AppCompatActivity {
     correctionsTextView.setText(getString(R.string.enable_corrections));
     correctionsToggle = layout.findViewById(R.id.toggle);
     correctionsToggle.setChecked(mayCorrect); // Link to persistent option storage!  Also needs handler.
-    prefsKey = KMManager.getLanguageCorrectionPreferenceKey(lgCode);
+    String prefsKey = KMManager.getLanguageCorrectionPreferenceKey(lgCode);
     correctionsToggle.setOnClickListener(new PreferenceToggleListener(prefsKey, lgCode));
 
     layout = (RelativeLayout)findViewById(R.id.predictions_toggle);
