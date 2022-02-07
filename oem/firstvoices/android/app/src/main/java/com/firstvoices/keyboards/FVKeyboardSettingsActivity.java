@@ -16,6 +16,7 @@ import androidx.appcompat.widget.Toolbar;
 
 import com.tavultesoft.kmea.KMManager;
 import com.tavultesoft.kmea.ModelPickerActivity;
+import com.tavultesoft.kmea.data.Dataset;
 import com.tavultesoft.kmea.data.KeyboardController;
 import com.tavultesoft.kmea.util.KMLog;
 
@@ -41,6 +42,9 @@ public final class FVKeyboardSettingsActivity extends AppCompatActivity {
   private String customHelpLink;
   private String version;
   private SharedPreferences prefs;
+
+  private static Dataset repo;
+  private boolean didExecuteParser = false;
 
   private final static String TAG = "FVKbdSettingsAct";
 

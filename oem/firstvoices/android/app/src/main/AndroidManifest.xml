@@ -3,8 +3,9 @@
     xmlns:tools="http://schemas.android.com/tools"
     package="com.firstvoices.keyboards" >
 
-    <!-- Keyman Engine removes INTERNET permission, so add it back for crash reporting -->
+    <!-- Keyman Engine removes INTERNET permission, so add it back for crash reporting and get dictionaries -->
     <uses-permission android:name="android.permission.INTERNET" tools:node="replace" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 
     <application
         android:allowBackup="true"

@@ -46,6 +46,7 @@ final class FVShared {
 
     public static final String FVDefault_PackageID = "fv_all";
 
+    /*
     // Default Dictionary Info
     public static final String FVDefault_DictionaryPackageID = "nrc.str.sencoten";
     public static final String FVDefault_DictionaryModelID = "nrc.str.sencoten";
@@ -53,6 +54,7 @@ final class FVShared {
     public static final String FVDefault_DictionaryLanguageID = "str-latn";
     public static final String FVDefault_DictionaryLanguageName = "SENĆOŦEN";
     public static final String FVDefault_DictionaryKMP = FVDefault_DictionaryPackageID + FileUtils.MODELPACKAGE;
+     */
 
     /// Describes a keyboard used in FirstVoices Keyboards
     static class FVKeyboard {

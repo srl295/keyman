@@ -70,6 +70,7 @@ public class MainActivity extends AppCompatActivity {
                 KMManager.KMDefault_KeyboardFont)
         );
 
+        /**
         ArrayList<HashMap<String, String>> modelsList = KMManager.getLexicalModelsList(context);
         if (modelsList == null || modelsList.size() == 0) {
           String lexicalModelVersion = KMManager.getLexicalModelPackageVersion(
@@ -85,6 +86,7 @@ public class MainActivity extends AppCompatActivity {
           KMManager.addLexicalModel(context, lexicalModelInfo);
           KMManager.registerAssociatedLexicalModel(FVShared.FVDefault_DictionaryLanguageID);
         }
+        */
 
       final String htmlPath = "file:///android_asset/setup/main.html";
         WebView webView = findViewById(R.id.webView);
