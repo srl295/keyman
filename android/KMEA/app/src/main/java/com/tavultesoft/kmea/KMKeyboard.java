@@ -42,6 +42,7 @@ import android.view.GestureDetector;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
+import android.view.VelocityTracker;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
@@ -82,6 +83,7 @@ final class KMKeyboard extends WebView {
   private static ArrayList<OnKeyboardEventListener> kbEventListeners = null;
   private boolean ShouldShowHelpBubble = false;
   private boolean isChiral = false;
+  private VelocityTracker velocityTracker = null;
 
   private int currentKeyboardErrorReports = 0;
 
@@ -176,16 +178,24 @@ final class KMKeyboard extends WebView {
       }
     });
 
+    if (velocityTracker == null) {
+      velocityTracker = VelocityTracker.obtain();
+    } else {
+      velocityTracker.clear();
+    }
     gestureDetector = new GestureDetector(context, new GestureDetector.SimpleOnGestureListener() {
       @Override
       public boolean onDown(MotionEvent event) {
+        Log.d(TAG, "onDown: " + event.toString());
         return true;
       }
 
       @Override
       public void onLongPress(MotionEvent event) {
+        Log.d(TAG, "onLongpress Action: " + event.getAction() + ", count: " + event.getPointerCount());
         // This is also called for banner longpresses!  Need a way to differentiate the sources.
         if (subKeysList != null) {
+          Log.d(TAG, "Action onLongpress. Showing subkeys");
           showSubKeys(context);
           return;
         } else if (KMManager.getGlobeKeyState() == KMManager.GlobeKeyState.GLOBE_KEY_STATE_DOWN) {
@@ -196,6 +206,8 @@ final class KMKeyboard extends WebView {
           showSuggestionLongpress(context);
           return;
         }*/
+        } else {
+          Log.d(TAG, "Action subKeysList null");
         }
       }
 
@@ -274,6 +286,10 @@ final class KMKeyboard extends WebView {
     // Come to think of it, I wonder if suggestionMenuWindow was work being done to link with
     // suggestion banner longpresses - if so, it's not yet ready for proper integration...
     // and would need its own rung in this if-else ladder.
+    Log.d(TAG, "Action onTouchEvent: " + event.getAction());
+    if (velocityTracker == null) {
+      velocityTracker = VelocityTracker.obtain();
+    }
     if (subKeysWindow != null && suggestionMenuWindow == null) {
       // Passes KMKeyboard (subclass of WebView)'s touch events off to our subkey window
       // if active, allowing for smooth, integrated gesture control.
@@ -281,13 +297,42 @@ final class KMKeyboard extends WebView {
     } else {
       //handleTouchEvent(event);
       gestureDetector.onTouchEvent(event);
-      if (event.getAction() == MotionEvent.ACTION_UP) {
-        subKeysList = null;
-      } else if (event.getAction() == MotionEvent.ACTION_MOVE) {
+      switch (event.getAction()) {
+        case MotionEvent.ACTION_DOWN :
+          velocityTracker.clear();
+          velocityTracker.addMovement(event);
+          break;
+        case MotionEvent.ACTION_UP :
+        case MotionEvent.ACTION_CANCEL :
+          Log.d(TAG, "Action up / cancel");
+          subKeysList = null;
+          velocityTracker.recycle();
+          velocityTracker = null;
+          break;
+        case MotionEvent.ACTION_MOVE :
+          Log.d(TAG, "Action move");
+          // Unless user is moving up to press preview, dismiss current key's preview
+          // From https://stackoverflow.com/questions/3148741/how-to-capture-finger-movement-direction-in-android-phone
+          int pointerId = event.getPointerId(event.getActionIndex());
+          velocityTracker.addMovement(event);
+          velocityTracker.computeCurrentVelocity(1000);
+          float yVelocity = velocityTracker.getYVelocity(pointerId);
+          Log.d(TAG, "Action yVelocity: " + yVelocity);
+          if (yVelocity < 0) {
+            dismissKeyPreview(0);
+          }
+
+          dismissSubKeysWindow();
         if (subKeysList != null && subKeysWindow == null) {
-          // Display subkeys during move
-          showSubKeys(context);
-        }
+            Log.d(TAG, "Action onTouchEvent. Showing subkeys");
+            showSubKeys(context);
+          } else {
+            // TODO: need to regenerate subkeys
+          }
+          break;
+        default:
+          // Ignore other actions
+          break;
       }
     }
 

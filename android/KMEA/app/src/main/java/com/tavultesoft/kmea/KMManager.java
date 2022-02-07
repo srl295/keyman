@@ -2276,6 +2276,10 @@ public final class KMManager {
         InAppKeyboard.dismissKeyPreview(100);
       } else if (url.indexOf("showMore") >= 0) {
         if (InAppKeyboard.subKeysWindow != null && InAppKeyboard.subKeysWindow.isShowing()) {
+          Log.d(TAG, "action KMManager showMore would ignore subKeysWindow");
+          // ACTION_MOVE during longpress so dismiss current subKeys and display new one
+          //InAppKeyboard.dismissKeyPreview(0);
+          InAppKeyboard.dismissSubKeysWindow();
           return false;
         }
 
