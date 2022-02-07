@@ -53,6 +53,7 @@
             android:layout_height="wrap_content"
             android:background="?android:selectableItemBackground"
             android:src="@drawable/ic_action_help"
+            android:layout_gravity="center_vertical"
             app:tint="@android:color/black"
             android:contentDescription="@string/image_button" />
 
@@ -62,6 +63,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:src="@drawable/ic_arrow_forward"
+            android:layout_gravity="center_vertical"
             app:tint="@android:color/black"
             android:contentDescription="@string/image_view" />
     </LinearLayout>

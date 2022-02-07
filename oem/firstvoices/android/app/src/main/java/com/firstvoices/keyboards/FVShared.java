@@ -155,7 +155,7 @@ final class FVShared {
                     line = line.replace(",,", ", ,");
 
                 String[] values = line.split(",");
-                if (values.length > 0) {
+                if (values != null && values.length > 0) {
                     // Columns: shortname,id,name,region,legacyId
                     String kbId = values[1];
                     String kbName = values[2];
@@ -284,48 +284,46 @@ final class FVShared {
     }
 
     private void updateActiveKeyboardsList() {
-        // Clear existing active keyboards list
+      // Clear existing active keyboards list
 
-        List<Keyboard> activeKbList = KMManager.getKeyboardsList(context);
-        if (activeKbList != null) {
-            int len = activeKbList.size();
-            for (int i = len-1; i >= 0; i--)
-                KMManager.removeKeyboard(context, i);
-        }
+      List<Keyboard> activeKbList = KMManager.getKeyboardsList(context);
+      if (activeKbList != null) {
+        int len = activeKbList.size();
+        for (int i = len - 1; i >= 0; i--)
+          KMManager.removeKeyboard(context, i);
+      }
 
-        File resourceRoot =  new File(getResourceRoot());
-        PackageProcessor kmpProcessor =  new PackageProcessor(resourceRoot);
+      File resourceRoot = new File(getResourceRoot());
+      PackageProcessor kmpProcessor = new PackageProcessor(resourceRoot);
 
-        // Recreate active keyboards list
-        for(FVRegion region : regionList) {
-            for(FVKeyboard keyboard : region.keyboards) {
-                if(loadedKeyboards.contains(keyboard.id)) {
-                    // Parse kmp.json for the keyboard info
-                    Keyboard kbd = kmpProcessor.getKeyboard(
-                      FVDefault_PackageID,
-                      keyboard.id,
-                      null); // get first associated language ID
-                    if (kbd != null) {
-                      kbd.setDisplayName(keyboard.name);
-                      // TODO: Override fonts to NotoSansCanadianAboriginal.ttf
-                      KMManager.addKeyboard(context, kbd);
-                    }
-                }
+      // Recreate active keyboards list
+      for (FVRegion region : regionList) {
+        for (FVKeyboard keyboard : region.keyboards) {
+          if (loadedKeyboards.contains(keyboard.id)) {
+            // Parse kmp.json for the keyboard info
+            Keyboard kbd = kmpProcessor.getKeyboard(
+              FVDefault_PackageID,
+              keyboard.id,
+              null); // get first associated language ID
+            if (kbd != null) {
+              kbd.setDisplayName(keyboard.name);
+              // TODO: Override fonts to NotoSansCanadianAboriginal.ttf
+              KMManager.addKeyboard(context, kbd);
             }
+          }
         }
+      }
 
-        activeKbList = KMManager.getKeyboardsList(context);
-        if (activeKbList != null) {
-            if (activeKbList.size() > 0) {
-                if (KMManager.getCurrentKeyboardIndex(context) < 0)
-                    KMManager.setKeyboard(context, 0);
-            }
-            else {
-                // Add a default keyboard if none are available
-                Keyboard kbInfo = KMManager.getDefaultKeyboard(context);
-                KMManager.addKeyboard(context, kbInfo);
-            }
+      activeKbList = KMManager.getKeyboardsList(context);
+      if ((activeKbList != null) && (activeKbList.size() > 0)) {
+        if (KMManager.getCurrentKeyboardIndex(context) < 0) {
+          KMManager.setKeyboard(context, 0);
         }
+      } else {
+        // Add a default keyboard if none are available
+        Keyboard kbInfo = KMManager.getDefaultKeyboard(context);
+        KMManager.addKeyboard(context, kbInfo);
+      }
     }
 
     public String getResourceRoot() {

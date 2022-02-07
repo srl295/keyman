@@ -189,9 +189,9 @@ public class PackageProcessor {
       languageList.add(defaultLanguageID);
     }
 
-
     String keyboardId = jsonEntry.getString(PP_KEYBOARD_ID_KEY);
-    if (touchKeyboardExists(packageId, keyboardId)) {
+    // Check that package has touch keyboards. Special case for fv_all because fv_all.kmp hasn't been extracted yet
+    if (touchKeyboardExists(packageId, keyboardId) || packageId.equals("fv_all")) {
       HashMap<String, String>[] keyboards = new HashMap[preferredLanguageCount];
       boolean firstLanguageAdded = false;
       int i=0;
@@ -561,7 +561,7 @@ public class PackageProcessor {
       File kmpFile = new File(packageId + ".kmp");
       File packageDir = constructPath(kmpFile, false);
       File[] files = packageDir.listFiles(touchKeyboardFilter);
-      if (files.length > 0) {
+      if (files != null && files.length > 0) {
         return true;
       }
     }

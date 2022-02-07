@@ -224,6 +224,13 @@ public final class FVKeyboardSettingsActivity extends AppCompatActivity {
     lexicalModelTextView.setEnabled(true);
   }
 
+  public static void setActiveLexicalModelLabel(String lexicalModelLabel) {
+    if (lexicalModelTextView != null && lexicalModelLabel != null && !lexicalModelLabel.isEmpty()) {
+      lexicalModelTextView.setText(lexicalModelLabel);
+      lexicalModelTextView.setEnabled(true);
+    }
+  }
+
   @Override
   public void onPause() {
     super.onPause();
