@@ -133,13 +133,16 @@ final class FVShared {
         FVRegionList list = new FVRegionList();
         try {
             // At this point in initialization, kmp.json hasn't been extracted, so we'll
-            // parse a copy of kmp.json from assets to get associated language info
+            // parse a copy of kmp.json from assets to get associated keyboard & language info
             InputStream kmpStream = context.getAssets().open("kmp.json");
             BufferedReader kmpReader = new BufferedReader(new InputStreamReader(kmpStream));
             JSONParser jsonParser = new JSONParser();
             JSONObject jsonObj = jsonParser.getJSONObjectFromReader(kmpReader);
             File resourceRoot =  new File(getResourceRoot());
             PackageProcessor kmpProcessor =  new PackageProcessor(resourceRoot);
+
+            // This is a list of all the keyboard / language pairings in the kmp
+            List<Keyboard> kbList = kmpProcessor.getKeyboardList(jsonObj, FVDefault_PackageID);
 
             InputStream inputStream = context.getAssets().open("keyboards.csv");
             BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
@@ -169,13 +172,15 @@ final class FVShared {
                     String lgId = "en";
                     String lgName = "English";
                     String version = "9.0";
-                    List<Keyboard> kbList = kmpProcessor.getKeyboardList(
-                        jsonObj, FVDefault_PackageID, kbId, true, false);
                     if (kbList != null && kbList.size() > 0) {
-                        Keyboard kbd = kbList.get(0);
-                        lgId = kbd.getLanguageID();
-                        lgName = kbd.getLanguageName();
-                        version = kbd.getVersion();
+                      // Search for corresponding keyboard ID
+                      for (Keyboard kbd : kbList) {
+                        if (kbId.equals(kbd.getKeyboardID())) {
+                          lgId = kbd.getLanguageID();
+                          lgName = kbd.getLanguageName();
+                          version = kbd.getVersion();
+                        }
+                      }
                     }
                     FVKeyboard keyboard = new FVKeyboard(kbId, kbName, legacyId, lgId, lgName, version);
 
@@ -186,8 +191,7 @@ final class FVShared {
             }
 
             inputStream.close();
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             Log.e("createKeyboardList", "Error: " + e);
             // We'll return a malformed list for now in this situation
         }

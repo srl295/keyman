@@ -182,7 +182,7 @@ public class PackageProcessor {
    */
   public Map<String, String>[] processEntry(JSONObject jsonEntry, String packageId, String packageVersion, ArrayList<String> languageList) throws JSONException {
     JSONArray languages = jsonEntry.getJSONArray(PP_LANGUAGES_KEY);
-    int preferredLanguageCount = (languageList != null & !languageList.isEmpty()) ? languageList.size() : 1;
+    int preferredLanguageCount = (languageList != null && !languageList.isEmpty()) ? languageList.size() : 1;
     String defaultLanguageID = languages.getJSONObject(0).getString("id");
     if (languageList == null || languageList.isEmpty()) {
       languageList = new ArrayList<String>();
@@ -623,6 +623,45 @@ public class PackageProcessor {
       KMLog.LogException(TAG, "getKeyboards() ", e);
     }
     Collections.sort(list, new LanguageNameSorter());
+    return list;
+  }
+
+  /**
+   * Get a list of available keyboard and language pairings that are available to add.
+   * Keyboard list sorted by language name. This parses kmp.json from a temporary location
+   * (parses the kmp.json for the language list)
+   * @param infoJSON - kmp.json as a JSON object
+   * @param packageID - String of the package ID
+   * @return List of <Keyboard> based on kmp.json.
+   */
+  public List<Keyboard> getKeyboardList(JSONObject infoJSON, String packageID) {
+    List<Keyboard> list = new ArrayList<Keyboard>();
+    try {
+      JSONArray keyboards = infoJSON.getJSONArray(PP_KEYBOARDS_KEY);
+
+      for (int i = 0; i < keyboards.length(); i++) {
+        JSONObject keyboard = keyboards.getJSONObject(i);
+        Map<String, String>[] maps = processEntry(keyboard, packageID, null, null);
+        if (maps != null) {
+          // Only returning first keyboard map
+          Keyboard kbd = new Keyboard(
+            maps[0].get(KMManager.KMKey_PackageID),
+            maps[0].get(KMManager.KMKey_KeyboardID),
+            maps[0].get(KMManager.KMKey_KeyboardName),
+            maps[0].get(KMManager.KMKey_LanguageID),
+            maps[0].get(KMManager.KMKey_LanguageName),
+            maps[0].get(KMManager.KMKey_KeyboardVersion),
+            maps[0].get(KMManager.KMKey_CustomHelpLink), // can be null
+            "",
+            false,
+            maps[0].get(KMManager.KMKey_Font),
+            maps[0].get(KMManager.KMKey_OskFont));
+          list.add(kbd);
+        }
+      }
+    } catch (JSONException e) {
+      KMLog.LogException(TAG, "getKeyboardList()", e);
+    }
     return list;
   }
 
