@@ -15,7 +15,13 @@ namespace com.keyman.dom.targets {
     }
 
     clearSelection(): void {
-      // Touch-alias elements do not currently support selections.
+      if (this.hasSelection()) {
+        let Lsel = this.root.ownerDocument.getSelection();
+
+        if(!Lsel.isCollapsed) {
+          Lsel.deleteFromDocument();  // I2134, I2192
+        }
+      }
       return;
     }
 
@@ -25,8 +31,18 @@ namespace com.keyman.dom.targets {
     }
 
     hasSelection(): boolean {
-      // Always has an internal caret position.
-      return true;
+      let Lsel = this.root.ownerDocument.getSelection();
+      let outerSel = document.getSelection();
+
+      if (Lsel && outerSel && Lsel.toString().length > 0) {
+        // If the outer doc's selection matches, we're active.
+        // Both start and end elements need to be the same
+        if(outerSel.anchorNode == Lsel.anchorNode && outerSel.focusNode == Lsel.focusNode &&
+            Lsel.anchorNode == Lsel.focusNode) {
+          return true;
+        }
+      }
+      return false; // designIFrame returns true?
     }
 
     getDeadkeyCaret(): number {
@@ -34,6 +50,10 @@ namespace com.keyman.dom.targets {
     }
 
     getTextBeforeCaret(): string {
+      if (this.hasSelection()) {
+        // If there's selected text, use nul for context
+        return '';
+      }
       return this.root.getTextBeforeCaret();
     }
 
