@@ -333,6 +333,10 @@ final class KMKeyboard extends WebView {
     loadJavascript(KMString.format("setOskWidth(%d)", newConfig.screenWidthDp));
     loadJavascript(KMString.format("setOskHeight(%d)", oskHeight));
 
+    // Force KeymanWeb and keyboard processor to reset
+    // This "works" but doesn't address iOS and might be excessive
+    loadJavascript("resetContext()");
+
     if (dismissHelpBubble()) {
       Handler handler = new Handler();
       handler.postDelayed(new Runnable() {
