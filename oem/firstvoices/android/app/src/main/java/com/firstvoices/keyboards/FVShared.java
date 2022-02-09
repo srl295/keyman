@@ -46,26 +46,16 @@ final class FVShared {
 
     public static final String FVDefault_PackageID = "fv_all";
 
-    /*
-    // Default Dictionary Info
-    public static final String FVDefault_DictionaryPackageID = "nrc.str.sencoten";
-    public static final String FVDefault_DictionaryModelID = "nrc.str.sencoten";
-    public static final String FVDefault_DictionaryModelName = "SENĆOŦEN (Saanich Dialect) Lexical Model";
-    public static final String FVDefault_DictionaryLanguageID = "str-latn";
-    public static final String FVDefault_DictionaryLanguageName = "SENĆOŦEN";
-    public static final String FVDefault_DictionaryKMP = FVDefault_DictionaryPackageID + FileUtils.MODELPACKAGE;
-     */
-
     /// Describes a keyboard used in FirstVoices Keyboards
     static class FVKeyboard {
-        final String id, name, legacyId, lgId, lgName, version;
-        FVKeyboard(String id, String name, String legacyId, String lgId, String lgName, String version) {
+        final String id, name, legacyId, version, lgId, lgName;
+        FVKeyboard(String id, String name, String legacyId, String version, String lgId, String lgName) {
             this.id = id;
             this.name = name;
             this.legacyId = legacyId;
+            this.version = version;
             this.lgId = lgId;
             this.lgName = lgName;
-            this.version = version;
         }
     }
 
@@ -132,18 +122,8 @@ final class FVShared {
     private FVRegionList loadRegionList() {
         FVRegionList list = new FVRegionList();
         try {
-            // At this point in initialization, kmp.json hasn't been extracted, so we'll
-            // parse a copy of kmp.json from assets to get associated keyboard & language info
-            InputStream kmpStream = context.getAssets().open("kmp.json");
-            BufferedReader kmpReader = new BufferedReader(new InputStreamReader(kmpStream));
-            JSONParser jsonParser = new JSONParser();
-            JSONObject jsonObj = jsonParser.getJSONObjectFromReader(kmpReader);
-            File resourceRoot =  new File(getResourceRoot());
-            PackageProcessor kmpProcessor =  new PackageProcessor(resourceRoot);
-
-            // This is a list of all the keyboard / language pairings in the kmp
-            List<Keyboard> kbList = kmpProcessor.getKeyboardList(jsonObj, FVDefault_PackageID);
-
+            // At this point in initialization, fv_all.kmp hasn't been extracted, so
+            // we get all the keyboard info from keyboards.csv
             InputStream inputStream = context.getAssets().open("keyboards.csv");
             BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
 
@@ -161,6 +141,9 @@ final class FVShared {
                     String kbName = values[2];
                     String regionName = values[3];
                     String legacyId = values[4];
+                    String version = values[5];
+                    String lgId = values[6];
+                    String lgName = values[7];
 
                     FVRegion region = list.findRegion(regionName);
                     if(region == null) {
@@ -168,21 +151,7 @@ final class FVShared {
                         list.add(region);
                     }
 
-                    // Get associated language. Should we have a fallback language?
-                    String lgId = "en";
-                    String lgName = "English";
-                    String version = "9.0";
-                    if (kbList != null && kbList.size() > 0) {
-                      // Search for corresponding keyboard ID
-                      for (Keyboard kbd : kbList) {
-                        if (kbId.equals(kbd.getKeyboardID())) {
-                          lgId = kbd.getLanguageID();
-                          lgName = kbd.getLanguageName();
-                          version = kbd.getVersion();
-                        }
-                      }
-                    }
-                    FVKeyboard keyboard = new FVKeyboard(kbId, kbName, legacyId, lgId, lgName, version);
+                    FVKeyboard keyboard = new FVKeyboard(kbId, kbName, legacyId, version, lgId, lgName);
 
                     region.keyboards.add(keyboard);
                 }
@@ -244,7 +213,7 @@ final class FVShared {
         }
     }
 
-    FVRegionList getRegionList() {
+  FVRegionList getRegionList() {
         return regionList;
     }
 

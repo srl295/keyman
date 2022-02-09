@@ -33,7 +33,7 @@ display_usage ( ) {
 export TARGET=FirstVoices
 KEYBOARD_PACKAGE_ID="fv_all"
 KEYBOARDS_TARGET="$KEYMAN_ROOT/oem/firstvoices/android/app/src/main/assets/${KEYBOARD_PACKAGE_ID}.kmp"
-KMP_TARGET="$KEYMAN_ROOT/oem/firstvoices/android/app/src/main/assets/${KEYBOARD_PACKAGE_ID}"
+KEYBOARDS_CSV="$KEYMAN_ROOT/oem/firstvoices/keyboards.csv"
 KEYBOARDS_CSV_TARGET="$KEYMAN_ROOT/oem/firstvoices/android/app/src/main/assets/keyboards.csv"
 
 # This build script assumes that the https://github.com/keymanapp/keyboards repo is in
@@ -85,16 +85,13 @@ if [ ! -z "$PARAM_LIB_BUILD" ] && [ ! -z "$PARAM_NO_LIB_BUILD" ]; then
   exit 1
 fi
 
-# Download default keyboard
+# Download default keyboard package
 if [ "$DO_KEYBOARDS_DOWNLOAD" = true ]; then
   echo "Copying keyboards.csv"
-  cp "$KEYMAN_ROOT/oem/firstvoices/keyboards.csv" "$KEYBOARDS_CSV_TARGET"
+  cp "$KEYBOARDS_CSV" "$KEYBOARDS_CSV_TARGET"
 
   downloadKeyboardPackage "$KEYBOARD_PACKAGE_ID" "$KEYBOARDS_TARGET"
 fi
 
 # TODO: in the future build_common.sh should probably be shared with all oem products?
 ./build_common.sh $PARAM_DEBUG $PARAM_NO_DAEMON $PARAM_NO_UPDATE $PARAM_LIB_BUILD $PARAM_NO_LIB_BUILD
-
-# For FV Android, we need to extract kmp.json to get language info for generating the Regions/keyboard list
-unzip -o "$KEYBOARDS_TARGET" kmp.json -d "$KEYMAN_ROOT/oem/firstvoices/android/app/src/main/assets"
