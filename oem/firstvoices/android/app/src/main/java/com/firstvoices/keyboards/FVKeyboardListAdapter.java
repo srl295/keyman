@@ -10,6 +10,7 @@ import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -23,6 +24,7 @@ class FVKeyboardListAdapter extends ArrayAdapter<FVShared.FVKeyboard> {
     Typeface listFont;
 
     private static class ViewHolder {
+        LinearLayout linearLayout;
         ImageView check;
         TextView text1;
         ImageButton helpButton;
@@ -43,9 +45,10 @@ class FVKeyboardListAdapter extends ArrayAdapter<FVShared.FVKeyboard> {
         if(convertView == null) {
             convertView = LayoutInflater.from(getContext()).inflate(R.layout.keyboard_row_layout, parent, false);
             holder = new ViewHolder();
+            holder.linearLayout = convertView.findViewById(R.id.linearLayout);
+            holder.linearLayout.setOnClickListener(new FVKeyboardListAdapter.FVOnClickNextListener());
             holder.check = convertView.findViewById(R.id.image1);
             holder.text1 = convertView.findViewById(R.id.text1);
-            holder.text1.setOnClickListener(new FVKeyboardListAdapter.FVOnClickNextListener());
             holder.helpButton = convertView.findViewById(R.id.buttonHelp);
             holder.helpButton.setOnClickListener(new FVKeyboardListAdapter.FVOnClickHelpListener());
             holder.nextButton = convertView.findViewById(R.id.imageNext);
@@ -64,8 +67,8 @@ class FVKeyboardListAdapter extends ArrayAdapter<FVShared.FVKeyboard> {
             if (KeyboardController.getInstance().keyboardExists(FVShared.FVDefault_PackageID, keyboard.id, null)) {
                 holder.check.setVisibility(View.VISIBLE);
             }
+            holder.linearLayout.setTag(keyboard);
             holder.text1.setText(keyboard.name);
-            holder.text1.setTag(keyboard);
             holder.helpButton.setTag(keyboard.id);
             holder.nextButton.setTag(keyboard);
         }
@@ -90,7 +93,7 @@ class FVKeyboardListAdapter extends ArrayAdapter<FVShared.FVKeyboard> {
         }
     }
 
-    private class FVOnClickNextListener implements ImageButton.OnClickListener {
+    private class FVOnClickNextListener implements View.OnClickListener {
         @Override
         public void onClick(View v) {
             FVShared.FVKeyboard keyboard = (FVShared.FVKeyboard) v.getTag();
