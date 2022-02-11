@@ -136,13 +136,13 @@ final class FVShared {
 
                 String[] values = line.split(",");
                 if (values != null && values.length > 0) {
-                    // Columns: shortname,id,name,region,legacyId
+                    // Read in column info
                     String kbId = values[1];
                     String kbName = values[2];
                     String regionName = values[3];
                     String legacyId = values[4];
                     String version = values[5];
-                    String lgId = values[6];
+                    String lgId = values[6].toLowerCase(); // Normalize language ID
                     String lgName = values[7];
 
                     FVRegion region = list.findRegion(regionName);

@@ -1,4 +1,4 @@
-package com.firstvoices.keyboards;
+package com.firstvoices.android;
 
 public enum FVKmpInstallMode {
   Silent,       // Show no UI while installing a package. Errors may be shown as toasts

@@ -11,6 +11,7 @@ import android.os.Bundle;
 
 import android.widget.Toast;
 
+import com.firstvoices.android.FVKmpInstallMode;
 import com.tavultesoft.kmea.KMManager;
 import com.tavultesoft.kmea.KeyboardEventHandler;
 import com.tavultesoft.kmea.packages.PackageProcessor;

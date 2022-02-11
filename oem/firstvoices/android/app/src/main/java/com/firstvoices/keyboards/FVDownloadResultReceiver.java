@@ -7,7 +7,7 @@ import android.os.Handler;
 import android.os.ResultReceiver;
 import android.widget.Toast;
 
-import com.firstvoices.keyboards.FVKmpInstallMode;
+import com.firstvoices.android.FVKmpInstallMode;
 import com.tavultesoft.kmea.BaseActivity;
 import com.tavultesoft.kmea.util.FileUtils;
 

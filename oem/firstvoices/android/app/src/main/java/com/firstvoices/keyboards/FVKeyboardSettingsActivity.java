@@ -9,6 +9,7 @@ import android.view.Window;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.SwitchCompat;
@@ -16,10 +17,15 @@ import androidx.appcompat.widget.Toolbar;
 
 import com.tavultesoft.kmea.KMManager;
 import com.tavultesoft.kmea.ModelPickerActivity;
+import com.tavultesoft.kmea.cloud.CloudApiTypes;
+import com.tavultesoft.kmea.cloud.CloudDownloadMgr;
+import com.tavultesoft.kmea.cloud.impl.CloudLexicalModelMetaDataDownloadCallback;
+import com.tavultesoft.kmea.data.CloudRepository;
 import com.tavultesoft.kmea.data.Dataset;
 import com.tavultesoft.kmea.data.KeyboardController;
 import com.tavultesoft.kmea.util.KMLog;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 
 /**
@@ -109,6 +115,12 @@ public final class FVKeyboardSettingsActivity extends AppCompatActivity {
       }
     }
 
+    // Force the cloud catalog to update
+    if (!didExecuteParser) {
+      didExecuteParser = true;
+      repo = CloudRepository.shared.fetchDataset(context);
+    }
+
     kbId = bundle.getString(KMManager.KMKey_KeyboardID);
     kbName = bundle.getString(KMManager.KMKey_KeyboardName);
     lgCode = bundle.getString(KMManager.KMKey_LanguageID);
@@ -133,6 +145,26 @@ public final class FVKeyboardSettingsActivity extends AppCompatActivity {
     fvKeyboardToggle.setOnClickListener(new View.OnClickListener() {
         @Override
         public void onClick(View v) {
+          // If keyboard enabled, determine if associated lexical model should be downloaded
+          // Check if associated model is not already installed
+          if (fvKeyboardToggle.isChecked() && (KMManager.getAssociatedLexicalModel(lgCode) == null) && KMManager.hasConnection(context)) {
+            String _downloadid = CloudLexicalModelMetaDataDownloadCallback.createDownloadId(lgCode);
+            CloudLexicalModelMetaDataDownloadCallback _callback = new CloudLexicalModelMetaDataDownloadCallback();
+
+            Toast.makeText(context,
+              context.getString(R.string.query_associated_model),
+              Toast.LENGTH_SHORT).show();
+
+            ArrayList<CloudApiTypes.CloudApiParam> aPreparedCloudApiParams = new ArrayList<>();
+            String url = CloudRepository.prepareLexicalModelQuery(lgCode);
+            aPreparedCloudApiParams.add(new CloudApiTypes.CloudApiParam(
+              CloudApiTypes.ApiTarget.KeyboardLexicalModels, url).setType(CloudApiTypes.JSONType.Array));
+
+            CloudDownloadMgr.getInstance().executeAsDownload(
+              context, _downloadid, null, _callback,
+              aPreparedCloudApiParams.toArray(new CloudApiTypes.CloudApiParam[0]));
+          }
+
            FVShared.getInstance().setCheckState(kbId, fvKeyboardToggle.isChecked());
         }
     });

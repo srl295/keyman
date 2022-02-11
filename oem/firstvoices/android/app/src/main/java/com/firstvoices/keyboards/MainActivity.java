@@ -4,7 +4,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
-//import android.support.v8.app.ActionBarActivity;
 import android.os.Handler;
 import android.view.View;
 import android.webkit.JavascriptInterface;
@@ -20,14 +19,14 @@ import io.sentry.android.core.SentryAndroid;
 import com.tavultesoft.kmea.*;
 import com.tavultesoft.kmea.data.Keyboard;
 import com.tavultesoft.kmea.util.DownloadFileUtils;
+import com.tavultesoft.kmea.KeyboardEventHandler.OnKeyboardDownloadEventListener;
 
 import java.io.File;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class MainActivity extends AppCompatActivity implements KeyboardEventHandler.OnKeyboardDownloadEventListener {
+public class MainActivity extends AppCompatActivity implements OnKeyboardDownloadEventListener {
     public static Context context;
 
     FVDownloadResultReceiver resultReceiver;
@@ -80,24 +79,6 @@ public class MainActivity extends AppCompatActivity implements KeyboardEventHand
                 KMManager.KMDefault_KeyboardFont,
                 KMManager.KMDefault_KeyboardFont)
         );
-
-        /**
-        ArrayList<HashMap<String, String>> modelsList = KMManager.getLexicalModelsList(context);
-        if (modelsList == null || modelsList.size() == 0) {
-          String lexicalModelVersion = KMManager.getLexicalModelPackageVersion(
-            context, FVShared.FVDefault_DictionaryPackageID);
-
-          // Add default dictionaries
-          HashMap<String, String> lexicalModelInfo = new HashMap<String, String>();
-          lexicalModelInfo.put(KMManager.KMKey_PackageID, FVShared.FVDefault_DictionaryPackageID);
-          lexicalModelInfo.put(KMManager.KMKey_LanguageID, FVShared.FVDefault_DictionaryLanguageID);
-          lexicalModelInfo.put(KMManager.KMKey_LexicalModelID, FVShared.FVDefault_DictionaryModelID);
-          lexicalModelInfo.put(KMManager.KMKey_LexicalModelName, FVShared.FVDefault_DictionaryModelName);
-          lexicalModelInfo.put(KMManager.KMKey_LexicalModelVersion, lexicalModelVersion);
-          KMManager.addLexicalModel(context, lexicalModelInfo);
-          KMManager.registerAssociatedLexicalModel(FVShared.FVDefault_DictionaryLanguageID);
-        }
-        */
 
       final String htmlPath = "file:///android_asset/setup/main.html";
         WebView webView = findViewById(R.id.webView);
@@ -182,6 +163,10 @@ public class MainActivity extends AppCompatActivity implements KeyboardEventHand
     protected void onResume() {
         super.onResume();
 
+        KMManager.onResume();
+        KMKeyboardDownloaderActivity.addKeyboardDownloadEventListener(this);
+        PackageActivity.addKeyboardDownloadEventListener(this);
+
         Intent intent = getIntent();
         Uri loadingIntentUri = intent.getData();
 
@@ -208,6 +193,15 @@ public class MainActivity extends AppCompatActivity implements KeyboardEventHand
             else
                 webView.loadUrl("javascript:setCheckBoxOff('checkbox2');");
         }
+    }
+
+    @Override
+    protected void onPause() {
+      super.onPause();
+      KMManager.onPause();
+
+      // Intentionally not removing KeyboardDownloadEventListener to
+      // ensure onKeyboardDownloadFinished() gets called
     }
 
     /*
