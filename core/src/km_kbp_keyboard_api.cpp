@@ -15,6 +15,7 @@
 #include "processor.hpp"
 #include "kmx/kmx_processor.hpp"
 #include "mock/mock_processor.hpp"
+#include "ldml/ldml_processor.hpp"
 
 using namespace km::kbp;
 
